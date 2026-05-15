@@ -64,6 +64,13 @@ enum ChatCompletionsHandler {
                         roleSent = true
                         try await writer.write(
                             SSE.event(chunk(id, created, model, delta, finishReason: nil)))
+                    case .reasoningDelta(let text):
+                        let delta = ChatCompletionChunk.Delta(
+                            role: roleSent ? nil : "assistant", content: nil,
+                            reasoningContent: text, toolCalls: nil)
+                        roleSent = true
+                        try await writer.write(
+                            SSE.event(chunk(id, created, model, delta, finishReason: nil)))
                     case .toolCall(let call):
                         let delta = ChatCompletionChunk.Delta(
                             role: roleSent ? nil : "assistant", content: nil, toolCalls: [call])

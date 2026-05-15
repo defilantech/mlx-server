@@ -212,10 +212,12 @@ public struct ChatCompletionResponse: Encodable, Sendable {
     public struct ResponseMessage: Encodable, Sendable {
         public var role: String = "assistant"
         public var content: String?
+        public var reasoningContent: String?
         public var toolCalls: [ToolCallObject]?
 
         enum CodingKeys: String, CodingKey {
             case role, content
+            case reasoningContent = "reasoning_content"
             case toolCalls = "tool_calls"
         }
     }
@@ -262,10 +264,12 @@ public struct ChatCompletionChunk: Encodable, Sendable {
     public struct Delta: Encodable, Sendable {
         public var role: String?
         public var content: String?
+        public var reasoningContent: String?
         public var toolCalls: [ToolCallObject]?
 
         enum CodingKeys: String, CodingKey {
             case role, content
+            case reasoningContent = "reasoning_content"
             case toolCalls = "tool_calls"
         }
     }
