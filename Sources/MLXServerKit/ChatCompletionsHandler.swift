@@ -77,11 +77,18 @@ enum ChatCompletionsHandler {
                         roleSent = true
                         try await writer.write(
                             SSE.event(chunk(id, created, model, delta, finishReason: nil)))
-                    case .finished(let reason, _):
+                    case .finished(let reason, let usage):
                         let delta = ChatCompletionChunk.Delta(
                             role: nil, content: nil, toolCalls: nil)
                         try await writer.write(
                             SSE.event(chunk(id, created, model, delta, finishReason: reason)))
+                        // OpenAI-style trailing usage chunk: empty choices,
+                        // populated usage. Lets clients report context-window
+                        // consumption for a streamed turn.
+                        try await writer.write(
+                            SSE.event(ChatCompletionChunk(
+                                id: id, created: created, model: model,
+                                choices: [], usage: usage)))
                     }
                 }
                 try await writer.write(SSE.done())
