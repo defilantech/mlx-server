@@ -18,26 +18,45 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.6.0"),
         // Metrics API (Prometheus backend wired up in Phase 2).
         .package(url: "https://github.com/apple/swift-metrics.git", from: "2.5.0"),
-
-        // TODO(phase-1): add mlx-swift-lm once the upstream Package.swift either
-        // exposes mlx-swift as a remote URL dependency or we adopt a workspace
-        // / submodule strategy. mlx-swift-lm currently uses .package(path: "../mlx-swift")
-        // which blocks remote consumption.
-        //   https://github.com/ekryski/mlx-swift-lm/blob/alpha/Package.swift
+        // MLX inference for Apple Silicon: LLMs/VLMs plus the chat-template
+        // tool-call parsers. Consumed remotely from the v3.32.1-alpha tag.
+        .package(url: "https://github.com/ekryski/mlx-swift-lm", exact: "3.32.1-alpha"),
+        // HuggingFace hub client + tokenizers. Required by the MLXHuggingFace
+        // macros that generate the model Downloader / TokenizerLoader.
+        .package(url: "https://github.com/huggingface/swift-transformers", from: "1.3.0"),
+        .package(url: "https://github.com/huggingface/swift-huggingface", from: "0.9.0"),
     ],
     targets: [
+        // Thin executable: CLI parsing only. All logic lives in MLXServerKit.
         .executableTarget(
             name: "MLXServer",
             dependencies: [
-                .product(name: "Hummingbird", package: "hummingbird"),
+                "MLXServerKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "Logging", package: "swift-log"),
-                .product(name: "Metrics", package: "swift-metrics"),
             ]
         ),
-        // TODO(phase-1): re-add test target once we have real handlers to test.
-        // Will use swift-testing (built into Swift 6+) when targeting a full
-        // Xcode toolchain. Command Line Tools-only installs do not ship the
-        // Testing module.
+        // Library target: server, routing, inference engine, OpenAI types.
+        // Separated from the executable so it is unit-testable.
+        .target(
+            name: "MLXServerKit",
+            dependencies: [
+                .product(name: "Hummingbird", package: "hummingbird"),
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Metrics", package: "swift-metrics"),
+                .product(name: "MLXLLM", package: "mlx-swift-lm"),
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
+                .product(name: "MLXHuggingFace", package: "mlx-swift-lm"),
+                .product(name: "Tokenizers", package: "swift-transformers"),
+                .product(name: "HuggingFace", package: "swift-huggingface"),
+            ]
+        ),
+        // swift-testing (ships with the Swift 6 toolchain; needs a full Xcode).
+        .testTarget(
+            name: "MLXServerTests",
+            dependencies: [
+                "MLXServerKit",
+                .product(name: "HummingbirdTesting", package: "hummingbird"),
+            ]
+        ),
     ]
 )
