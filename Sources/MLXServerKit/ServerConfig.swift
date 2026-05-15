@@ -15,18 +15,22 @@ public struct ServerConfig: Sendable {
     /// Optional tool-call format override (e.g. `xml_function`, `json`).
     /// When `nil` the format is inferred from the model's `config.json`.
     public var toolCallFormat: String?
+    /// How thinking-model output is split into `reasoning_content` vs `content`.
+    public var reasoningMode: ReasoningMode
 
     public init(
         model: String,
         host: String,
         port: Int,
         maxSlots: Int,
-        toolCallFormat: String? = nil
+        toolCallFormat: String? = nil,
+        reasoningMode: ReasoningMode = .auto
     ) {
         self.model = model
         self.host = host
         self.port = port
         self.maxSlots = maxSlots
         self.toolCallFormat = toolCallFormat
+        self.reasoningMode = reasoningMode
     }
 }

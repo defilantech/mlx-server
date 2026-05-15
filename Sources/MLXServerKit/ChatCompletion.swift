@@ -7,7 +7,9 @@ extension InferenceEngine {
         let input = try await prepareInput(for: request)
         let parameters = ChatMapping.resolveGenerateParameters(request)
 
-        var text = ""
+        var splitter = ReasoningSplitter(mode: reasoningMode)
+        var content = ""
+        var reasoning = ""
         var toolCalls: [ToolCallObject] = []
         var info: GenerateCompletionInfo?
 
@@ -16,7 +18,9 @@ extension InferenceEngine {
             for await generation in stream {
                 switch generation {
                 case .chunk(let chunk):
-                    text += chunk
+                    let split = splitter.push(chunk)
+                    content += split.content
+                    reasoning += split.reasoning
                 case .toolCall(let call):
                     toolCalls.append(Self.toolCallObject(call, index: toolCalls.count))
                 case .info(let completionInfo):
@@ -26,10 +30,14 @@ extension InferenceEngine {
         } catch {
             throw ServerError.inferenceFailed(String(describing: error))
         }
+        let tail = splitter.flush()
+        content += tail.content
+        reasoning += tail.reasoning
 
         let hasToolCalls = !toolCalls.isEmpty
         let message = ChatCompletionResponse.ResponseMessage(
-            content: hasToolCalls ? (text.isEmpty ? nil : text) : text,
+            content: hasToolCalls && content.isEmpty ? nil : content,
+            reasoningContent: reasoning.isEmpty ? nil : reasoning,
             toolCalls: hasToolCalls ? toolCalls : nil
         )
         return ChatCompletionResponse(
@@ -86,6 +94,7 @@ extension InferenceEngine {
 /// Semantic events emitted by a streaming completion, before OpenAI framing.
 enum StreamEvent: Sendable {
     case textDelta(String)
+    case reasoningDelta(String)
     case toolCall(ToolCallObject)
     case finished(reason: String, usage: Usage)
 }
@@ -117,6 +126,7 @@ extension InferenceEngine {
         let input = try await prepareInput(for: request)
         let parameters = ChatMapping.resolveGenerateParameters(request)
 
+        var splitter = ReasoningSplitter(mode: reasoningMode)
         var toolCallCount = 0
         var info: GenerateCompletionInfo?
         do {
@@ -124,7 +134,13 @@ extension InferenceEngine {
             for await generation in generations {
                 switch generation {
                 case .chunk(let chunk):
-                    continuation.yield(.textDelta(chunk))
+                    let split = splitter.push(chunk)
+                    if !split.reasoning.isEmpty {
+                        continuation.yield(.reasoningDelta(split.reasoning))
+                    }
+                    if !split.content.isEmpty {
+                        continuation.yield(.textDelta(split.content))
+                    }
                 case .toolCall(let call):
                     continuation.yield(.toolCall(Self.toolCallObject(call, index: toolCallCount)))
                     toolCallCount += 1
@@ -135,6 +151,10 @@ extension InferenceEngine {
         } catch {
             throw ServerError.inferenceFailed(String(describing: error))
         }
+
+        let tail = splitter.flush()
+        if !tail.reasoning.isEmpty { continuation.yield(.reasoningDelta(tail.reasoning)) }
+        if !tail.content.isEmpty { continuation.yield(.textDelta(tail.content)) }
 
         continuation.yield(
             .finished(

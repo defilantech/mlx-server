@@ -54,8 +54,14 @@ xcodebuild -scheme mlx-server -destination 'platform=macOS,arch=arm64' \
 ```
 
 `--model` takes a local MLX model directory or a HuggingFace id. Other flags:
-`--host`, `--port`, `--max-slots`, `--tool-call-format` (e.g. `xml_function`
-for Qwen3.5 / Qwen3-Coder; auto-inferred when unset).
+
+- `--host`, `--port`, `--max-slots`
+- `--tool-call-format` — e.g. `xml_function` for Qwen3.5 / Qwen3-Coder;
+  auto-inferred when unset
+- `--reasoning` — how thinking output is split into `reasoning_content` vs
+  `content`: `auto` (default; splits on a literal `<think>`/`</think>`),
+  `prefilled` (output starts mid-thought — use for Qwen3.5 / Qwen3.6), or
+  `off`
 
 ## Roadmap
 

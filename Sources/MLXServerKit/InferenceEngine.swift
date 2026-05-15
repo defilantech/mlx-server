@@ -17,17 +17,21 @@ public actor InferenceEngine {
     public let modelID: String
     /// Resolved tool-call format, or `nil` to let the model config decide.
     let toolCallFormat: ToolCallFormat?
+    /// How thinking output is split into reasoning vs answer text.
+    let reasoningMode: ReasoningMode
     let logger: Logger
 
     private init(
         container: ModelContainer,
         modelID: String,
         toolCallFormat: ToolCallFormat?,
+        reasoningMode: ReasoningMode,
         logger: Logger
     ) {
         self.container = container
         self.modelID = modelID
         self.toolCallFormat = toolCallFormat
+        self.reasoningMode = reasoningMode
         self.logger = logger
     }
 
@@ -63,6 +67,7 @@ public actor InferenceEngine {
             container: container,
             modelID: config.model,
             toolCallFormat: format,
+            reasoningMode: config.reasoningMode,
             logger: logger)
     }
 

@@ -23,9 +23,15 @@ struct MLXServerCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Tool-call format override (e.g. xml_function, json). Auto-inferred when unset.")
     var toolCallFormat: String?
 
+    @Option(name: .long, help: "Reasoning split mode: auto, prefilled, or off. Use 'prefilled' for Qwen3.5 / Qwen3.6.")
+    var reasoning: String = "auto"
+
     func run() async throws {
         guard let model else {
             throw ValidationError("--model is required (HuggingFace ID or local directory path).")
+        }
+        guard let reasoningMode = ReasoningMode(rawValue: reasoning) else {
+            throw ValidationError("--reasoning must be one of: auto, prefilled, off")
         }
 
         let config = ServerConfig(
@@ -33,7 +39,8 @@ struct MLXServerCommand: AsyncParsableCommand {
             host: host,
             port: port,
             maxSlots: maxSlots,
-            toolCallFormat: toolCallFormat
+            toolCallFormat: toolCallFormat,
+            reasoningMode: reasoningMode
         )
 
         try await MLXServerKit.run(config: config)
