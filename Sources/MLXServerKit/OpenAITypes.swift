@@ -249,6 +249,9 @@ public struct ChatCompletionChunk: Encodable, Sendable {
     public var created: Int
     public var model: String
     public var choices: [ChunkChoice]
+    /// Token usage. Populated only on the final chunk of a stream so clients
+    /// can report context-window consumption; omitted on all other chunks.
+    public var usage: Usage?
 
     public struct ChunkChoice: Encodable, Sendable {
         public var index: Int

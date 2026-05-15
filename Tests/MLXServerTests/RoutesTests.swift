@@ -97,6 +97,8 @@ struct RoutesTests {
             let text = String(buffer: response.body)
             #expect(text.contains("chat.completion.chunk"))
             #expect(text.contains("data: [DONE]"))
+            // The stream must carry a trailing usage chunk for context %.
+            #expect(text.contains("\"prompt_tokens\""))
         }
     }
 
