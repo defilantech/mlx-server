@@ -32,7 +32,7 @@ jobs:
       # mlx-swift's Metal shaders + the MLX C++ sources are expensive to
       # compile; cache the SwiftPM and Xcode build products across runs.
       - name: Cache build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .build
