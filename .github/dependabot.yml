@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # SwiftPM dependencies. Dependabot keeps Package.swift requirements and
+  # Package.resolved current within their declared ranges.
+  #
+  # Note on mlx-swift-lm: it is pinned `exact:` to an alpha tag. A Dependabot
+  # PR bumping it is a useful "new alpha is available" signal, but it is alpha
+  # software on which the whole inference path depends, so such a PR must be
+  # integration-tested against a real model before merging, never auto-merged.
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+
+  # GitHub Actions used by the CI and release workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
