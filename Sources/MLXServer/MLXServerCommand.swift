@@ -5,7 +5,8 @@ import MLXServerKit
 struct MLXServerCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "mlx-server",
-        abstract: "OpenAI-compatible HTTP server for mlx-swift-lm on Apple Silicon."
+        abstract: "OpenAI-compatible HTTP server for mlx-swift-lm on Apple Silicon.",
+        version: "0.1.0"
     )
 
     @Option(name: .long, help: "Model identifier (HuggingFace ID or local directory path).")
