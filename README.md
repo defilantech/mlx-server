@@ -34,7 +34,21 @@ The end goal is to be a drop-in replacement for `llama-server` in [LLMKube](http
 
 [TheTom's MLXServer](https://github.com/ekryski/mlx-swift-lm/tree/ek/tom-eric-moe-tuning/Sources/MLXServer) (abandoned in favor of vllm-swift) was the proof-of-concept that an MLX-swift HTTP server is feasible. Several design decisions here, particularly around the slot manager and longest-prefix KV cache, are informed by his approach. The decision to rebuild rather than fork is mainly because his original used hand-rolled socket code; this repo uses [Hummingbird](https://github.com/hummingbird-project/hummingbird) for the HTTP layer.
 
-## Build and run
+## Install
+
+```bash
+brew install defilantech/tap/mlx-server
+```
+
+Apple Silicon, macOS 14 (Sonoma) or later. This installs the latest prebuilt
+release; older versions and the raw tarballs are on the
+[releases page](https://github.com/defilantech/mlx-server/releases). Then:
+
+```bash
+mlx-server --model /path/to/mlx-model-dir --port 8080
+```
+
+## Build from source
 
 Requires:
 - macOS 14 (Sonoma) or later, Apple Silicon
