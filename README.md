@@ -22,7 +22,7 @@ The end goal is to be a drop-in replacement for `llama-server` in [LLMKube](http
 - Tool calling and structured outputs
 - Vision-language model support (Qwen-VL, Gemma 4 VL, etc.)
 - Multi-slot concurrency with longest-prefix KV cache reuse
-- Single static binary distribution via Homebrew + GitHub releases
+- One-command install via Homebrew, plus prebuilt GitHub releases
 
 ## Non-goals
 
