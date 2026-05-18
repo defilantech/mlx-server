@@ -48,7 +48,10 @@ extension InferenceEngine {
                 .init(
                     index: 0,
                     message: message,
-                    finishReason: hasToolCalls ? "tool_calls" : "stop"
+                    finishReason: Self.finishReason(
+                        hasToolCalls: hasToolCalls,
+                        generatedTokens: info?.generationTokenCount ?? 0,
+                        maxTokens: parameters.maxTokens)
                 )
             ],
             usage: Usage(
@@ -88,6 +91,17 @@ extension InferenceEngine {
 
     static func unixNow() -> Int {
         Int(Date().timeIntervalSince1970)
+    }
+
+    /// OpenAI `finish_reason` for a completed generation: `length` when the
+    /// output was truncated at the token limit, `tool_calls` when the model
+    /// emitted tool calls, otherwise `stop`. Truncation is inferred by
+    /// comparing the generated token count against the requested limit,
+    /// since the generator does not surface a stop reason directly.
+    static func finishReason(hasToolCalls: Bool, generatedTokens: Int, maxTokens: Int?) -> String {
+        if hasToolCalls { return "tool_calls" }
+        if let maxTokens, generatedTokens >= maxTokens { return "length" }
+        return "stop"
     }
 }
 
@@ -158,7 +172,10 @@ extension InferenceEngine {
 
         continuation.yield(
             .finished(
-                reason: toolCallCount > 0 ? "tool_calls" : "stop",
+                reason: Self.finishReason(
+                    hasToolCalls: toolCallCount > 0,
+                    generatedTokens: info?.generationTokenCount ?? 0,
+                    maxTokens: parameters.maxTokens),
                 usage: Usage(
                     promptTokens: info?.promptTokenCount ?? 0,
                     completionTokens: info?.generationTokenCount ?? 0)))
